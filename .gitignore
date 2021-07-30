@@ -1,0 +1,4 @@
+lightning_logs/*
+dataset/*
+scratch/*
+__pycache__/*
