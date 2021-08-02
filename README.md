@@ -6,7 +6,9 @@ What it does
 First, install dependencies   
 ```bash
 # tested on Pytorch 1.9
-conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
+conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c 
+
+conda install pytorch-lightning -c conda-forge
 
 conda install piq -c photosynthesis-team -c conda-forge -c PyTorch
  ```   
