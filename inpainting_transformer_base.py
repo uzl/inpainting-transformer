@@ -382,8 +382,6 @@ class InpaintingTransformer(nn.Module):
         )
         self.norm = nn.LayerNorm(embed_dim, eps=1e-6)
         # Transformer block.
-        # TODO: U-net structure residual connection.
-        #       Performance gain is small. Skipping for now.
         # TODO: MFSA instead of MSA.
         #       Performance gain is small. Skipping for now.
         self.blocks = nn.ModuleList(
@@ -433,9 +431,24 @@ class InpaintingTransformer(nn.Module):
         # Create (L.L) * D dimensional embedding for transformer block
         x = torch.cat([x_inp, x_nbr], dim=1)
 
-        # Transformer block
-        for block in self.blocks:
-            x = block(x)
+        # Transformer block with U-net structure skip connection
+        blk_len = len(self.blocks)
+        half_len = blk_len // 2
+        tmp_x_list = []
+        for i in range(half_len):
+            x = self.blocks[i](x)
+            tmp_x_list.append(x)
+
+        n = half_len
+        # if number of block is odd
+        if blk_len % 2 == 1:
+            x = self.blocks[half_len](x)
+            n += 1
+
+        tmp_x_list.reverse()
+        for i, tmp_x in enumerate(tmp_x_list):
+            x = self.blocks[i+n](x + tmp_x)
+
         x = self.norm(x)
 
         # [B*(L*L)*D] dim to [B, 1, D] dim by averaging.
