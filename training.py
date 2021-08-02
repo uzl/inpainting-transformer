@@ -12,7 +12,7 @@ import torch.optim as optim
 from torch.utils.data import random_split, Dataset, DataLoader
 from torchvision import transforms, utils
 from torchvision.transforms.transforms import RandomRotation
-from torchmetrics import SSIM
+from piq import SSIMLoss, GMSDLoss
 import pytorch_lightning as pl
 from inpainting_transformer_base import InpaintingTransformer, img_to_window_patches
 
@@ -38,8 +38,9 @@ class InpTrans(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         assert args.img_width == args.img_height, 'Expected square image shape.'
-        self.L2_loss = nn.MSELoss()
-        self.ssim = SSIM()
+        self.l2_loss = nn.MSELoss()
+        self.ssim_loss = SSIMLoss(data_range=1.0)
+        self.gmsd_loss = GMSDLoss(data_range=1.0)
         self.last_epoch = self.current_epoch
         self.model = InpaintingTransformer(
             img_size=args.img_width,  # assuming width and height same
@@ -81,8 +82,10 @@ class InpTrans(pl.LightningModule):
 
     def _calculate_loss(self, Y_pred, Y, mode="train"):
         l2_loss = self.L2_loss(Y_pred, Y)
-        ssim_loss = 1 - self.ssim(Y_pred, Y)
-        loss = l2_loss + (0.01 * ssim_loss)
+        ssim_loss = self.ssim_loss(Y_pred, Y)
+        gmsd_loss = self.gmsd_loss(Y_pred, Y)
+        
+        loss = l2_loss + (0.01 * ssim_loss) + (0.01 * gmsd_loss)
         self.log(f'{mode}_loss', loss)
         self.log(f'{mode}_L2_loss', l2_loss)
         self.log(f'{mode}_SSIM_loss', ssim_loss)
@@ -110,14 +113,15 @@ class InpTrans(pl.LightningModule):
         loss = self._calculate_loss(Y_pred, Y, mode='val')
 
         # save 10 images for logging
-        if  self.current_epoch - self.last_epoch > 0:
+        if self.current_epoch - self.last_epoch > 0:
             self.last_epoch += 1
             grid = utils.make_grid(
                 torch.cat([Y[:10], Y_pred[:10]], dim=0),
                 nrow=10,
                 normalize=False
             )
-            self.logger.experiment.add_image('generated_images', grid, self.current_epoch)
+            self.logger.experiment.add_image(
+                'generated_images', grid, self.current_epoch)
         return loss
 
 
@@ -230,13 +234,6 @@ class MVTechDataModule(pl.LightningDataModule):
     def val_dataloader(self):
         return DataLoader(
             self.val_dataset,
-            batch_size=self.args.batch_size,
-            num_workers=self.args.num_workers
-        )
-
-    def test_dataloader(self):
-        return DataLoader(
-            self.test_dataset,
             batch_size=self.args.batch_size,
             num_workers=self.args.num_workers
         )

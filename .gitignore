@@ -2,3 +2,4 @@ lightning_logs/*
 dataset/*
 scratch/*
 __pycache__/*
+.vscode/*
