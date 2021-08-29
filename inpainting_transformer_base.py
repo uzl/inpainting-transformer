@@ -99,43 +99,9 @@ def img_to_window_patches(x, K, L, r, s, t, u, flatten_patch=True, positional_ma
     }
 
 
+ 
 class Attention(nn.Module):
-    """Attention mechanism.
-
-    Parameters
-    ----------
-    dim : int
-        The input and out dimension of per token features.
-
-    n_heads : int
-        Number of attention heads.
-
-    qkv_bias : bool
-        If True then we include bias to the query, key and value projections.
-
-    attn_p : float
-        Dropout probability applied to the query, key and value tensors.
-
-    proj_p : float
-        Dropout probability applied to the output tensor.
-
-
-    Attributes
-    ----------
-    scale : float
-        Normalizing consant for the dot product.
-
-    qkv : nn.Linear
-        Linear projection for the query, key and value.
-
-    proj : nn.Linear
-        Linear mapping that takes in the concatenated output of all attention
-        heads and maps it into a new space.
-
-    attn_drop, proj_drop : nn.Dropout
-        Dropout layers.
-    """
-
+    # https://github.com/jankrepl/mildlyoverfitted/tree/master/github_adventures/vision_transformer
     def __init__(self, dim, n_heads=12, qkv_bias=True, attn_p=0., proj_p=0.):
         super().__init__()
         self.n_heads = n_heads
@@ -198,37 +164,7 @@ class Attention(nn.Module):
 
 
 class MLP(nn.Module):
-    """Multilayer perceptron.
-
-    Parameters
-    ----------
-    in_features : int
-        Number of input features.
-
-    hidden_features : int
-        Number of nodes in the hidden layer.
-
-    out_features : int
-        Number of output features.
-
-    p : float
-        Dropout probability.
-
-    Attributes
-    ----------
-    fc : nn.Linear
-        The First linear layer.
-
-    act : nn.GELU
-        GELU activation function.
-
-    fc2 : nn.Linear
-        The second linear layer.
-
-    drop : nn.Dropout
-        Dropout layer.
-    """
-
+    # https://github.com/jankrepl/mildlyoverfitted/tree/master/github_adventures/vision_transformer
     def __init__(self, in_features, hidden_features, out_features, p=0.):
         super().__init__()
         self.fc1 = nn.Linear(in_features, hidden_features)
@@ -261,38 +197,7 @@ class MLP(nn.Module):
 
 
 class Block(nn.Module):
-    """Transformer block.
-
-    Parameters
-    ----------
-    dim : int
-        Embeddinig dimension.
-
-    n_heads : int
-        Number of attention heads.
-
-    mlp_ratio : float
-        Determines the hidden dimension size of the `MLP` module with respect
-        to `dim`.
-
-    qkv_bias : bool
-        If True then we include bias to the query, key and value projections.
-
-    p, attn_p : float
-        Dropout probability.
-
-    Attributes
-    ----------
-    norm1, norm2 : LayerNorm
-        Layer normalization.
-
-    attn : Attention
-        Attention module.
-
-    mlp : MLP
-        MLP module.
-    """
-
+    # https://github.com/jankrepl/mildlyoverfitted/tree/master/github_adventures/vision_transformer
     def __init__(self, dim, n_heads, mlp_ratio=4.0, qkv_bias=True, p=0., attn_p=0.):
         super().__init__()
         self.norm1 = nn.LayerNorm(dim, eps=1e-6)

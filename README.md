@@ -1,7 +1,7 @@
 
 ## Description   
-What it does   
-
+This is my implementation of **Inpainting Transformer for Anomaly Detection** paper [https://arxiv.org/abs/2104.13897]
+ 
 ## How to run   
 First, install dependencies   
 ```bash
@@ -27,13 +27,11 @@ For **inference**
 
 The training and inference parts are separated into two files. 
 1. training.py
-2. inference.py
+2. inference.py (todo)
 
 ### Training
 We use pytorch-lightning for organizing the code. 
 
 Training starting point is `main()` method.
-```python
 
-```
 
